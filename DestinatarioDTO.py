@@ -1,6 +1,7 @@
 class DestinatarioDTO:
 
-    def __init__(self, nome, cnpj, longradouro, numero, bairro, municipio, uf, cep, pais):
+    def __init__(self, nota_fiscal, nome, cnpj, longradouro, numero, bairro, municipio, uf, cep, pais, peso_bruto, peso_liquido):
+        self.nota_fiscal = nota_fiscal
         self.nome = nome
         self.cnpj = cnpj
         self.longradouro = longradouro
@@ -10,6 +11,8 @@ class DestinatarioDTO:
         self.uf = uf
         self.cep = cep
         self.pais = pais
+        self.peso_bruto = peso_bruto
+        self.peso_liquido = peso_liquido
         self.produtos = []
     
     def adicionarProdutos(self, produto):

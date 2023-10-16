@@ -55,7 +55,8 @@ class DadosXML:
         produto = ProdutosDTO.ProdutosDTO(codigo_fabrica, descricao, unidade, quantidade, codigo_barras)
         return produto
 
-    def dadosDestinatario(self, arquivo):
+    def dadosArquivo(self, arquivo):
+        nota_fiscal = arquivo['ide']['nNF']
         cnpj = arquivo['dest']['CNPJ']
         nome = arquivo['dest']['xNome']
         longradouro = arquivo['dest']['enderDest']['xLgr']
@@ -65,8 +66,10 @@ class DadosXML:
         uf = arquivo['dest']['enderDest']['UF']
         cep = arquivo['dest']['enderDest']['CEP']
         pais = arquivo['dest']['enderDest']['xPais']
+        peso_bruto = arquivo['transp']['vol']['pesoB']
+        peso_liquido = arquivo['transp']['vol']['pesoL']
 
-        destinatario = DestinatarioDTO.DestinatarioDTO(nome, cnpj, longradouro, numero, bairro, municipio, uf, cep, pais)
+        destinatario = DestinatarioDTO.DestinatarioDTO(nota_fiscal, nome, cnpj, longradouro, numero, bairro, municipio, uf, cep, pais, peso_bruto, peso_liquido)
         
         for i in range(1, arquivo['quantidade_produtos']+1):
             destinatario.adicionarProdutos(self.__dadosProduto(arquivo, i))
@@ -75,7 +78,7 @@ class DadosXML:
 # dados = DadosXML()
 # dados.selecionarArquivos()
 # for arquivo in dados.dados:
-#     destinatario = dados.dadosDestinatario(dados.dados[arquivo])
+#     destinatario = dados.dadosArquivo(dados.dados[arquivo])
 #     print(destinatario.nome)
 #     print(destinatario.cnpj)
 #     print(len(destinatario.produtos))
