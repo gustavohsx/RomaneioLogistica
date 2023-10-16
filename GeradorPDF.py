@@ -30,13 +30,13 @@ pdf.line(335, 710, 535, 710)
 pdf.setFont('Helvetica-Bold', 12)
 pdf.drawString(35, 660, 'COD FAB')
 pdf.drawString(180, 660, 'DESCRIÇÃO')
-pdf.drawString(390, 660, 'COD BARRA')
-pdf.drawString(470, 660, 'QUANT')
+pdf.drawString(410, 660, 'COD BARRA')
+pdf.drawString(490, 660, 'QT')
 pdf.drawString(520, 660, 'UNID')
 pdf.line(30, 650, 555, 650)
 
 def adicionarProdutos(produtos):
-    x = [35, 100, 390, 510, 520]
+    x = [35, 100, 410, 510, 520]
     y = 640
     for produto in produtos:
         pdf.setFont('Helvetica', 10)
