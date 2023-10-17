@@ -1,6 +1,6 @@
 import customtkinter
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import DadosXML
 import GeradorPDF
 
@@ -145,25 +145,6 @@ class App(customtkinter.CTk):
         
         self.adicionarProdutosTreeviewProdutos()
 
-    def mostrarDadosFiltrados(self):
-        cont_filtrados = 0
-        cont_filtrados_produtos = 0
-        produtos = []
-        for key in self.filtrados.keys():
-            for destinatario in self.filtrados[key]:
-                cont_filtrados += len(destinatario.produtos)
-                for produto in destinatario.produtos:
-                    produtos.append(produto.codigo_fabrica)
-        
-        for key in self.filtrados_produtos.keys():
-            cont_filtrados_produtos += len(self.filtrados_produtos[key])
-            for produto in self.filtrados_produtos[key]:
-                print(produto.descricao, produto.quantidade,)
-                print(produtos.count(produto.codigo_fabrica))
-
-        print(cont_filtrados)
-        print(cont_filtrados_produtos)
-
     def apagarProdutosTabview(self):
         try:
             self.produtos_tabview.destroy()
@@ -218,29 +199,41 @@ class App(customtkinter.CTk):
         produtos = []
         peso_bruto = 0
         peso_liquido = 0
+        notas_fiscais = []
+        quantidade_total_produtos = 0
         for key in self.filtrados_produtos.keys():
             for produto in self.filtrados_produtos[key]:
                 if produto.codigo_fabrica not in codigo_fabrica_produtos:
                     codigo_fabrica_produtos.append(produto.codigo_fabrica)
                     produtos.append(produto)
-                    print('adicionado a lista produtos')
+                    print('adicionado a lista produtos', produto)
                 else:
                     print('ja esta na lista produtos')
                     indice = codigo_fabrica_produtos.index(produto.codigo_fabrica)
-                    print(produto.codigo_fabrica, produtos[indice].codigo_fabrica)
+                    # print(produto.codigo_fabrica, produtos[indice].codigo_fabrica)
                     quantidade = produto.quantidade + produtos[indice].quantidade
                     produto.setQuantidade(quantidade)
-                    produtos[indice] = produto
-                    print(produtos[indice].codigo_fabrica)
+                    produtos.pop(indice)
+                    produtos.insert(indice, produto)
+                    # print(produtos[indice].codigo_fabrica)
             for arquivo in self.filtrados[key]:
                 peso_bruto += float(arquivo.peso_bruto)
                 peso_liquido += float(arquivo.peso_liquido)
+                notas_fiscais.append(arquivo.nota_fiscal)
+        for produto in produtos:
+            quantidade_total_produtos += int(produto.quantidade)
+        print(quantidade_total_produtos)
         print(len(produtos))
-        print(peso_bruto)
-        print(peso_liquido)
-        pdf = GeradorPDF
-        pdf.adicionarProdutos(produtos)
-        pdf.salvar()
+        # print(len(produtos))
+        # print(peso_bruto)
+        # print(peso_liquido)
+        produtos_pdf = sorted(produtos, key=lambda x: x.descricao)
+        caminho = filedialog.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
+        # print(caminho)
+        pdf = GeradorPDF.GerarPDF(caminho)
+        # pdf.adicionarProdutos(produtos)
+        # pdf.salvar()
+        pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos)
         
 
 app = App()
