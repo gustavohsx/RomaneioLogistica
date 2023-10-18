@@ -37,6 +37,16 @@ class GerarPDF():
         self.pdf.drawString(420, y, 'Cod.Barra')
         self.pdf.drawString(495, y, 'Qt')
         self.pdf.drawString(520, y, 'Unid.')
+    
+    def gerarQuadradoCheck(self, x, y):
+        # linha de cima
+        self.pdf.line(x[4]+20, y-5, x[4]+30, y-5)
+        # linha de baixo
+        self.pdf.line(x[4]+20, y+7, x[4]+30, y+7)
+        # linha esquerda
+        self.pdf.line(x[4]+20, y-5, x[4]+20, y+7)
+        # linha direita
+        self.pdf.line(x[4]+30, y-5, x[4]+30, y+7)
 
     def adicionarProdutosPaginaInicial(self, produtos, notas_fiscais=0, numero_pagina=1, peso_bruto=0, peso_liquido=0, quantidade_total=0, ultima_pagina=False, quant_paginas=1):
         self.pdf.setFont('Helvetica-Bold', 10)
@@ -70,7 +80,8 @@ class GerarPDF():
             self.pdf.setFont('Helvetica', 10)
             self.pdf.drawRightString(x[3], y, f'{int(produto.quantidade)}')
             self.pdf.drawString(x[4], y, produto.unidade)
-            
+            self.gerarQuadradoCheck(x, y)
+
             self.pdf.line(30, y-10, 555, y-10)
 
             y -= 20
@@ -115,6 +126,7 @@ class GerarPDF():
             self.pdf.setFont('Helvetica', 10)
             self.pdf.drawRightString(x[3], y, f'{int(produto.quantidade)}')
             self.pdf.drawString(x[4], y, produto.unidade)
+            self.gerarQuadradoCheck(x, y)
             
             self.pdf.line(30, y-10, 555, y-10)
 
@@ -145,15 +157,12 @@ class GerarPDF():
         quant_inicial = 0
         quant_final = 30
         if quant_paginas == 1:
-            print('uma pagina')
             self.paginaInicial(produtos=produtos[quant_inicial:quant_final], notas_fiscais=notas_fiscais, numero_pagina=1, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, ultima_pagina=True, quant_paginas=quant_paginas)
         else:
             self.paginaInicial(produtos=produtos[quant_inicial:quant_final], notas_fiscais=notas_fiscais, numero_pagina=1, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quant_paginas=quant_paginas)
             for i in range(2, quant_paginas+1):
                 self.pdf.showPage()
-                print(i)
                 if i == quant_paginas:
-                    print(i, quant_paginas)
                     quant_inicial = quant_final
                     quant_final += 35
                     self.cabecalhoTabela(y=760)

@@ -72,7 +72,8 @@ class DadosXML:
         destinatario = DestinatarioDTO.DestinatarioDTO(nota_fiscal, nome, cnpj, longradouro, numero, bairro, municipio, uf, cep, pais, peso_bruto, peso_liquido)
         
         for i in range(1, arquivo['quantidade_produtos']+1):
-            destinatario.adicionarProdutos(self.__dadosProduto(arquivo, i))
+            produto = self.__dadosProduto(arquivo, i)
+            destinatario.adicionarProdutos(produto)
         return destinatario
     
 # dados = DadosXML()

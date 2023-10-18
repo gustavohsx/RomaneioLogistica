@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk, filedialog
 import DadosXML
 import GeradorPDF
+import ProdutosDTO
 
     
 class App(customtkinter.CTk):
@@ -10,8 +11,17 @@ class App(customtkinter.CTk):
         super().__init__()
         self.tipo_filtragem_lista = ['Nota Fiscal', 'Cidade', 'Destinatario']
         self.dados = DadosXML.DadosXML()
-        self.destinatarios = []
+        self.arquivos = []
         self.filtrados = {}
+        self.impresso = False
+
+        self.codigo_fabrica_produtos = []
+        self.produtos = []
+        self.peso_bruto = 0
+        self.peso_liquido = 0
+        self.notas_fiscais = []
+        self.quantidade_total_produtos = 0
+        self.produtos_pdf = None
 
         self.title("Romaneio Logistica")
         self.geometry("800x550")
@@ -36,15 +46,17 @@ class App(customtkinter.CTk):
             self.apagarQuantidadeArquivos()
         except Exception as e:
             print('Não foi possivel apagar a Label quantidade arquivos abertos!', e)
+        self.impresso = False
+        self.filtrados = {}
         self.atualizarQuantidadeArquivos(len(self.dados.dados))
         self.obterDadosArquivos()
         self.ordenar(self.tipo_filtragem_combobox.get())
     
     def obterDadosArquivos(self):
-        self.destinatarios = []
+        self.arquivos = []
         for indice_arquivo in self.dados.dados:
             destinatario = self.dados.dadosArquivo(self.dados.dados[indice_arquivo])
-            self.destinatarios.append(destinatario)
+            self.arquivos.append(destinatario)
     
     def atualizarQuantidadeArquivos(self, quantidade):
         print(quantidade)
@@ -67,89 +79,46 @@ class App(customtkinter.CTk):
     
     def sortPeloNome(self, e):
         return e.descricao
+
+    def sortPeloIndice(self, e):
+        return e[1]
     
     def ordenar(self, tipo):
+        print('-'*100)
         self.filtrados = {}
-        self.filtrados_produtos = {}
-        if tipo.upper() == 'CIDADE':
-            for destinatario in self.destinatarios:
-                if destinatario.municipio.upper() not in self.filtrados.keys():
-                    self.filtrados[destinatario.municipio.upper()] = []
-                    self.filtrados[destinatario.municipio.upper()].append(destinatario)
-                    self.filtrados_produtos[destinatario.municipio.upper()] = []
-                    for produto in destinatario.produtos:
-                        self.filtrados_produtos[destinatario.municipio.upper()].append(produto)
-                else:
-                    self.filtrados[destinatario.municipio.upper()].append(destinatario)
-                    for produto in destinatario.produtos:
-                        in_lista = False
-                        for prod_lista in self.filtrados_produtos[destinatario.municipio.upper()]:
-                            if produto.codigo_fabrica == prod_lista.codigo_fabrica:
-                                # print(produto, '-'*5, prod_lista)
-                                quantidade = produto.quantidade + prod_lista.quantidade
-                                produto.setQuantidade(quantidade)
-                                prod_lista = produto
-                                # print(prod_lista)
-                                in_lista= True
-                        if not in_lista:
-                            self.filtrados_produtos[destinatario.municipio.upper()].append(produto)
-                    self.filtrados_produtos[destinatario.municipio.upper()].sort(key=self.sortPeloNome)
-        
-        elif tipo.upper() == 'NOTA FISCAL':
-            for destinatario in self.destinatarios:
-                if destinatario.nota_fiscal.upper() not in self.filtrados.keys():
-                    self.filtrados[destinatario.nota_fiscal.upper()] = []
-                    self.filtrados[destinatario.nota_fiscal.upper()].append(destinatario)
-                    self.filtrados_produtos[destinatario.nota_fiscal.upper()] = []
-                    for produto in destinatario.produtos:
-                        self.filtrados_produtos[destinatario.nota_fiscal.upper()].append(produto)
-                else:
-                    self.filtrados[destinatario.nota_fiscal.upper()].append(destinatario)
-                    for produto in destinatario.produtos:
-                        in_lista = False
-                        for prod_lista in self.filtrados_produtos[destinatario.nota_fiscal.upper()]:
-                            if produto.codigo_fabrica == prod_lista.codigo_fabrica:
-                                # print(produto, '-'*5, prod_lista)
-                                quantidade = produto.quantidade + prod_lista.quantidade
-                                produto.setQuantidade(quantidade)
-                                prod_lista = produto
-                                # print(prod_lista)
-                                in_lista= True
-                        if not in_lista:
-                            self.filtrados_produtos[destinatario.nota_fiscal.upper()].append(produto)
-                    self.filtrados_produtos[destinatario.nota_fiscal.upper()].sort(key=self.sortPeloNome)
+        self.quantidade_total_produtos = 0
+        if tipo.upper() == 'NOTA FISCAL':
+            for arquivo in self.arquivos:
+                aux = []
+                aux.append(arquivo)
+                self.filtrados[arquivo.nota_fiscal] = aux.copy()
+                for produto in arquivo.produtos:
+                    self.quantidade_total_produtos += produto.getQuantidade()
+
+        elif tipo.upper() == 'CIDADE':
+            for arquivo in self.arquivos:
+                aux = []
+                aux.append(arquivo)
+                try:
+                    self.filtrados[arquivo.municipio] = self.filtrados[arquivo.municipio] + aux.copy()
+                except:
+                    self.filtrados[arquivo.municipio] = aux.copy()
+                for produto in arquivo.produtos:
+                    self.quantidade_total_produtos += produto.getQuantidade()
 
         elif tipo.upper() == 'DESTINATARIO':
-            for destinatario in self.destinatarios:
-                if destinatario.nome.upper() not in self.filtrados.keys():
-                    self.filtrados[destinatario.nome.upper()] = []
-                    self.filtrados[destinatario.nome.upper()].append(destinatario)
-                    self.filtrados_produtos[destinatario.nome.upper()] = []
-                    for produto in destinatario.produtos:
-                        self.filtrados_produtos[destinatario.nome.upper()].append(produto)
-                else:
-                    self.filtrados[destinatario.nome.upper()].append(destinatario)
-                    for produto in destinatario.produtos:
-                        in_lista = False
-                        for prod_lista in self.filtrados_produtos[destinatario.nome.upper()]:
-                            if produto.codigo_fabrica == prod_lista.codigo_fabrica:
-                                # print(produto, '-'*5, prod_lista)
-                                quantidade = produto.quantidade + prod_lista.quantidade
-                                produto.setQuantidade(quantidade)
-                                prod_lista = produto
-                                # print(prod_lista)
-                                in_lista= True
-                        if not in_lista:
-                            self.filtrados_produtos[destinatario.nome.upper()].append(produto)
-                    self.filtrados_produtos[destinatario.nome.upper()].sort(key=self.sortPeloNome)
-        
-        self.adicionarProdutosTreeviewProdutos()
+            for arquivo in self.arquivos:
+                aux = []
+                aux.append(arquivo)
+                try:
+                    self.filtrados[arquivo.nome] = self.filtrados[arquivo.nome] + aux.copy()
+                except:
+                    self.filtrados[arquivo.nome] = aux.copy()
+                for produto in arquivo.produtos:
+                    self.quantidade_total_produtos += produto.getQuantidade()
 
-    def apagarProdutosTabview(self):
-        try:
-            self.produtos_tabview.destroy()
-        except Exception as e:
-            print('Não foi possivel apagar a tabview!', e)
+        print(self.filtrados.keys())
+        self.adicionarProdutosTreeviewProdutos()
     
     def adicionarProdutosTreeviewProdutos(self):
         try:
@@ -158,18 +127,21 @@ class App(customtkinter.CTk):
             print('Nao deu para apagar', e)
         self.produtos_tabview = customtkinter.CTkTabview(master=self)
         primeira_tab = ''
-        for key in self.filtrados_produtos.keys():
+        for key in self.filtrados.keys():
             try:
                 self.produtos_tabview.add(f'{key}')
                 primeira_tab = f'{key}' if primeira_tab == '' else primeira_tab
             except Exception as e:
                 print('Não deu para criar!', e)
             dados_produtos = []
-            for produto in self.filtrados_produtos[key]:
-                dados = (produto.codigo_fabrica, produto.descricao, f'{produto.quantidade} {produto.unidade}')
-                dados_produtos.append(dados)
+            for destinatario in self.filtrados[key]:
+                # print(destinatario)
+                for produto in destinatario.produtos:
+                    dados = (produto.codigo_fabrica, produto.descricao, f'{produto.quantidade} {produto.unidade}')
+                    dados_produtos.append(dados)
             self.criarProdutosTreeview(master=self.produtos_tabview.tab(f'{key}'))
-            for produto in dados_produtos:
+            dados_ordenados = sorted(dados_produtos, key=self.sortPeloIndice)
+            for produto in dados_ordenados:
                 self.produtos_treeview.insert('', END, values=produto)
             self.produtos_tabview.tab(f'{key}').grid()
         self.produtos_tabview.grid(column=0, row=4, columnspan=4)
@@ -182,59 +154,55 @@ class App(customtkinter.CTk):
         botao_imprimir_produtos_buttom.grid(column=1, row=6, sticky=W, padx=15)
     
     def excluirAba(self):
+
         aba_excluir = self.produtos_tabview.get()
         print(aba_excluir)
         self.produtos_tabview.delete(aba_excluir)
+
         try:
-            self.filtrados_produtos.pop(aba_excluir)
+            self.arquivos.pop(self.arquivos.index(self.filtrados[aba_excluir][0]))
             self.filtrados.pop(aba_excluir)
             print('apagado')
-            print(self.filtrados_produtos.keys())
-            print(self.filtrados.keys())
         except Exception as e:
             print(e)
+
+        self.impresso = False
+        self.ordenar(self.tipo_filtragem_combobox.get())
     
     def gerarPDF(self):
-        codigo_fabrica_produtos = []
-        produtos = []
-        peso_bruto = 0
-        peso_liquido = 0
-        notas_fiscais = []
-        quantidade_total_produtos = 0
-        for key in self.filtrados_produtos.keys():
-            for produto in self.filtrados_produtos[key]:
-                if produto.codigo_fabrica not in codigo_fabrica_produtos:
-                    codigo_fabrica_produtos.append(produto.codigo_fabrica)
-                    produtos.append(produto)
-                    print('adicionado a lista produtos', produto)
-                else:
-                    print('ja esta na lista produtos')
-                    indice = codigo_fabrica_produtos.index(produto.codigo_fabrica)
-                    # print(produto.codigo_fabrica, produtos[indice].codigo_fabrica)
-                    quantidade = produto.quantidade + produtos[indice].quantidade
-                    produto.setQuantidade(quantidade)
-                    produtos.pop(indice)
-                    produtos.insert(indice, produto)
-                    # print(produtos[indice].codigo_fabrica)
-            for arquivo in self.filtrados[key]:
-                peso_bruto += float(arquivo.peso_bruto)
-                peso_liquido += float(arquivo.peso_liquido)
-                notas_fiscais.append(arquivo.nota_fiscal)
-        for produto in produtos:
-            quantidade_total_produtos += int(produto.quantidade)
-        print(quantidade_total_produtos)
-        print(len(produtos))
-        # print(len(produtos))
-        # print(peso_bruto)
-        # print(peso_liquido)
-        produtos_pdf = sorted(produtos, key=lambda x: x.descricao)
+        if not self.impresso:
+            todos_produtos = {}
+            self.peso_bruto = 0
+            self.peso_liquido = 0
+            self.notas_fiscais = []
+            self.produtos = []
+            for key in self.filtrados.keys():
+                for arquivo in self.filtrados[key]:
+                    self.notas_fiscais.append(arquivo.nota_fiscal)
+                    self.peso_bruto += float(arquivo.peso_bruto)
+                    self.peso_liquido += float(arquivo.peso_liquido)
+                    for produto in arquivo.produtos:
+                        try:
+                            quantidade = todos_produtos[produto.codigo_fabrica].quantidade + produto.quantidade
+                            produto_novo = ProdutosDTO.ProdutosDTO(produto.getCodigoFabrica(), produto.getDescricao(), produto.getUnidade(), quantidade, produto.getCodigoBarras())
+                            todos_produtos[produto.codigo_fabrica] = produto_novo
+                            # print('atualizando', produto_novo.getCodigoFabrica())
+                        except:
+                            todos_produtos[produto.codigo_fabrica] = produto
+                            # print('inserindo agora', todos_produtos[produto.codigo_fabrica].getCodigoFabrica())
+            # print(todos_produtos)
+            for key in todos_produtos.keys():
+                self.produtos.append(todos_produtos[key])
+            # print('-'*40)
+            # print(self.produtos)
+        self.produtos_pdf = sorted(self.produtos, key=lambda x: x.descricao)
+        print(self.produtos_pdf)
+        print(len(self.produtos_pdf))
+        print(self.quantidade_total_produtos)
         caminho = filedialog.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
-        # print(caminho)
         pdf = GeradorPDF.GerarPDF(caminho)
-        # pdf.adicionarProdutos(produtos)
-        # pdf.salvar()
-        pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos)
-        
+        pdf.geraPDF(produtos=self.produtos_pdf, notas_fiscais=self.notas_fiscais, peso_bruto=self.peso_bruto, peso_liquido=self.peso_liquido, quantidade_total=self.quantidade_total_produtos)
+        self.impresso = True
 
 app = App()
 app.mainloop()
