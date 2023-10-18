@@ -1,5 +1,6 @@
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+import datetime
 
 
 class GerarPDF():
@@ -10,25 +11,25 @@ class GerarPDF():
 
     def cabecalhoPaginaInicial(self):
         self.pdf.setFont('Helvetica-Bold', 18)
-        self.pdf.drawString(35, 770, 'SPESSOA DISTRIBUIDOR')
+        self.pdf.drawString(190, 795, 'SPESSOA DISTRIBUIDOR')
 
         self.pdf.setFont('Helvetica-Bold', 12)
-        self.pdf.drawString(35, 750, 'DE:')
+        self.pdf.drawString(35, 770, 'DE:')
 
         self.pdf.setFont('Helvetica', 12)
-        self.pdf.drawString(35, 730, 'Motorista:')
-        self.pdf.line(90, 730, 270, 730)
-        self.pdf.drawString(35, 710, 'Placa:')
-        self.pdf.line(70, 710, 270, 710)
+        self.pdf.drawString(35, 750, 'Motorista:')
+        self.pdf.line(90, 750, 270, 750)
+        self.pdf.drawString(35, 730, 'Placa:')
+        self.pdf.line(70, 730, 270, 730)
 
         self.pdf.setFont('Helvetica-Bold', 12)
-        self.pdf.drawString(300, 750, 'PARA:')
+        self.pdf.drawString(300, 770, 'PARA:')
 
         self.pdf.setFont('Helvetica', 12)
-        self.pdf.drawString(300, 730, 'Motorista:')
-        self.pdf.line(355, 730, 535, 730)
-        self.pdf.drawString(300, 710, 'Placa:')
-        self.pdf.line(335, 710, 535, 710)
+        self.pdf.drawString(300, 750, 'Motorista:')
+        self.pdf.line(355, 750, 535, 750)
+        self.pdf.drawString(300, 730, 'Placa:')
+        self.pdf.line(335, 730, 535, 730)
 
     def cabecalhoTabela(self, y):
         self.pdf.setFont('Helvetica-Bold', 11)
@@ -40,26 +41,44 @@ class GerarPDF():
     
     def gerarQuadradoCheck(self, x, y):
         # linha de cima
-        self.pdf.line(x[4]+20, y-5, x[4]+30, y-5)
+        self.pdf.line(x[4]+20, y-5, x[4]+33, y-5)
         # linha de baixo
-        self.pdf.line(x[4]+20, y+7, x[4]+30, y+7)
+        self.pdf.line(x[4]+20, y+7, x[4]+33, y+7)
         # linha esquerda
         self.pdf.line(x[4]+20, y-5, x[4]+20, y+7)
         # linha direita
-        self.pdf.line(x[4]+30, y-5, x[4]+30, y+7)
+        self.pdf.line(x[4]+33, y-5, x[4]+33, y+7)
+    
+    def adicionarNotasFiscais(self, notas_fiscais):
+        x = 60
+        y = 712
+        # 12 por linha
+        for i in range(len(notas_fiscais)):
+            if i == 14 or i == 28 or i == 42 or i == 56:
+                x = 60
+                y = y - 10
+            self.pdf.setFont('Helvetica', 8)
+            self.pdf.drawString(x, y, f'{notas_fiscais[i]}')
+            if i != len(notas_fiscais)-1:
+                self.pdf.drawString(x+30, y, f'-')
+            x += 35
+        
+    def adicionarHora(self):
+        data_e_hora_atuais = datetime.datetime.now()
+        data_formatada = data_e_hora_atuais.strftime("%d/%m/%Y %H:%M:%S")
+        self.pdf.drawString(30, 800, f'{data_formatada}')
+    
+    def adicionarImagemFundo(self):
+        self.pdf.drawImage('logo_fundo.png', 35, 200, 500, 400)
 
     def adicionarProdutosPaginaInicial(self, produtos, notas_fiscais=0, numero_pagina=1, peso_bruto=0, peso_liquido=0, quantidade_total=0, ultima_pagina=False, quant_paginas=1):
         self.pdf.setFont('Helvetica-Bold', 10)
+        self.adicionarHora()
         self.pdf.drawString(500, 800, f'Página {numero_pagina} de {quant_paginas}')
-        self.pdf.drawString(30, 685, 'NFs:')
-        x = 60
-        for i in range(len(notas_fiscais)):
-            self.pdf.setFont('Helvetica', 10)
-            self.pdf.drawString(x, 685, f'{notas_fiscais[i]}')
-            if i != len(notas_fiscais)-1:
-                self.pdf.drawString(x+35, 685, f'-')
-            x += 40
-
+        
+        self.pdf.drawString(30, 712, 'NFs:')
+        self.adicionarNotasFiscais(notas_fiscais)
+        self.adicionarImagemFundo()
         x = [35, 100, 410, 510, 520]
         y = 640
         self.pdf.line(30, 650, 555, 650)
@@ -103,8 +122,9 @@ class GerarPDF():
     
     def adicionaProdutosPaginas(self, produtos, notas_fiscais=0, numero_pagina=2, peso_bruto=0, peso_liquido=0, quantidade_total=0, ultima_pagina=False, quant_paginas=1):
         self.pdf.setFont('Helvetica-Bold', 10)
+        self.adicionarHora()
         self.pdf.drawString(500, 800, f'Página {numero_pagina} de {quant_paginas}')
-        
+        self.adicionarImagemFundo()
         x = [35, 100, 410, 510, 520]
         y = 740
         self.pdf.line(30, 750, 555, 750)
