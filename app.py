@@ -48,6 +48,10 @@ class App(customtkinter.CTk):
             self.apagarQuantidadeArquivos()
         except Exception as e:
             print('Não foi possivel apagar a Label quantidade arquivos abertos!', e)
+        try:
+            self.confirmacao_impressao_buttom.destroy()
+        except Exception as e:
+            print('Não foi possivel apagar o Botão de Confirmação de Impressão!', e)
         self.impresso = False
         self.filtrados = {}
         self.atualizarQuantidadeArquivos(len(self.dados.dados))
@@ -173,7 +177,7 @@ class App(customtkinter.CTk):
                 self.filtrados.pop(aba_excluir)
                 print('apagado', self.filtrados[aba_excluir])
             except Exception as e:
-                print(e)
+                print('Não foi possivel apagar lista e dicionarios com as informações!',e)
         elif tipo.upper() == 'CIDADE':
             try:
                 for arquivo in self.filtrados[aba_excluir]:
@@ -202,7 +206,7 @@ class App(customtkinter.CTk):
             self.botao_imprimir_produtos_buttom.destroy()
             self.confirmacao_impressao_buttom.destroy()
         except Exception as e:
-            print(e)
+            print('Erro ao apagar os objetos apos clicado no Botao de Confirmação de Exclusão! ',e)
         try:
             self.arquivos = []
             self.filtrados = {}
@@ -216,7 +220,7 @@ class App(customtkinter.CTk):
             self.quantidade_total_produtos = 0
             self.produtos_pdf = None
         except Exception as e:
-            print(e)
+            print('Erro ao Reiniciar as variaveis!',e)
     
     def gerarPDF(self):
         if not self.impresso:
