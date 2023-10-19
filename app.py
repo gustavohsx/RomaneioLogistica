@@ -94,6 +94,10 @@ class App(customtkinter.CTk):
         return e[1]
     
     def ordenar(self, tipo):
+        try:
+            self.confirmacao_impressao_buttom.destroy()
+        except Exception as e:
+            print('Não foi possivel apagar o Botão de Confirmação de Impressão!', e)
         print('-'*100)
         self.filtrados = {}
         self.quantidade_total_produtos = 0
@@ -249,11 +253,18 @@ class App(customtkinter.CTk):
         print(self.quantidade_total_produtos)
         caminho = filedialog.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
         pdf = GeradorPDF.GerarPDF(caminho)
-        pdf.geraPDF(produtos=self.produtos_pdf, notas_fiscais=self.notas_fiscais, peso_bruto=self.peso_bruto, peso_liquido=self.peso_liquido, quantidade_total=self.quantidade_total_produtos)
+        pdf.geraPDF(produtos=self.produtos_pdf, notas_fiscais=self.notas_fiscais, peso_bruto=self.peso_bruto, peso_liquido=self.peso_liquido, quantidade_total=self.quantidade_total_produtos, quantidade_sku=len(self.produtos_pdf))
         self.impresso = True
-
-        self.confirmacao_impressao_buttom = customtkinter.CTkButton(self, text='Arquivo PDF gerado!', command=self.apagarTudo)
-        self.confirmacao_impressao_buttom.grid(column=0, pady=50, columnspan=4)
+        botao_confirmacao = False
+        try:
+            print('Botão confirmação de Impressão existe!',self.confirmacao_impressao_buttom)
+            botao_confirmacao = True
+        except Exception as e:
+            print('Botão confirmação de Impressão não existe!', e)
+            botao_confirmacao = False
+        if not botao_confirmacao:
+            self.confirmacao_impressao_buttom = customtkinter.CTkButton(self, text='Arquivo PDF gerado!', command=self.apagarTudo)
+            self.confirmacao_impressao_buttom.grid(column=0, pady=50, columnspan=4)
 
 app = App()
 app.mainloop()
